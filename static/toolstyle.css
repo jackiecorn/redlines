@@ -1,3 +1,7 @@
+body#app, #app header {
+  background-color: white;
+}
+
 ::-webkit-scrollbar-corner, ::-webkit-resizer {
   background: white;
 }

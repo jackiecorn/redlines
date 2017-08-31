@@ -13,7 +13,7 @@
       <designerName :project="project" @updateDesigner='updateDesigner'></designerName>
       <div id="icons">
         <!-- <div class='icon' id='updateButton' v-tooltip.bottom='"Update redlines"'></div> -->
-        <div class='icon' id='linkButton' v-clipboard:copy="'http://redlines.azurewebsites.net/projects/' + project.name" v-clipboard:success="copyLink" v-tooltip.bottom='"Copy link to clipboard"'></div>
+        <div class='icon' id='linkButton' v-clipboard:copy="'http://redlines.azurewebsites.net/' + project.name" v-clipboard:success="copyLink" v-tooltip.bottom='"Copy link to clipboard"'></div>
         <div class='icon' id='deleteButton' @click='openDeleteModal' v-tooltip.bottom='"Delete"'></div>
       </div>
 

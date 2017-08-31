@@ -1,12 +1,12 @@
 <template>
   <div id='home'>
-    <header></header>
+    <header id='homeHeader'></header>
     <div id='homeContent'>
     <div id='searchBox'>
       <input type='text' v-model='search' placeholder='Search project or designer name...'>
       <div id='searchIcon'></div>
     </div>
-    <transition-group name="list" tag="p">
+    <transition-group name="list" tag="div">
       <Block v-for='project in filteredProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote'></Block>
     </transition-group>
     </div>
@@ -16,30 +16,13 @@
 <script>
 import axios from 'axios'
 import Block from './Block'
-import Firebase from 'firebase'
-
-var config = {
-  apiKey: 'AIzaSyCrl-0_Kv0KP16NvWrkL5YFQ7Mhvrg6P1c',
-  authDomain: 'redlines-27008.firebaseapp.com',
-  databaseURL: 'https://redlines-27008.firebaseio.com',
-  projectId: 'redlines-27008',
-  storageBucket: 'redlines-27008.appspot.com',
-  messagingSenderId: '1506816515'
-}
-
-var app = Firebase.initializeApp(config)
-var db = app.database()
-var projectsRef = db.ref('Projects')
 
 export default {
   name: 'home',
-  firebase: {
-    projects: projectsRef
-  },
+  props: ['projects', 'projectsRef'],
   data () {
     return {
-      search: '',
-      msg: 'hello'
+      search: ''
     }
   },
 
@@ -50,60 +33,57 @@ export default {
   methods: {
     addNewProjects () {
       var self = this
-      setTimeout(function () {
-        axios.get('http://redlines.azurewebsites.net/projects/').then(function (response) {
-          var s = response.data
-          var startIndex = s.search('<pre>') + 5 + 45
-          var endIndex = s.search('</pre>')
-          var slicedString = s.slice(startIndex, endIndex).replace(/<br>/g, '')
-          var htmlObject = document.createElement('div')
-          htmlObject.innerHTML = slicedString
-          var nodesObject = htmlObject.childNodes
-          for (var j = 0; j < nodesObject.length; j += 2) {
-            var projectName = nodesObject[j + 1].text
-            var projectDate = new Date(nodesObject[j].data.trim()).toString()
-            var found = false
-            var hasUpdated = false
-            var childKey
-            var updateIndex
-            for (var i = 0; i < self.projects.length; i++) {
-              if (projectName === self.projects[i].name) {
-                found = true
-                childKey = self.projects[i]['.key']
-                // console.log(childKey)
-                updateIndex = self.projects[i].updates.length
-                if (projectDate !== self.projects[i].updates[ 0 ].date) {
-                  hasUpdated = true
+      if (self.projects[0]) {
+        setTimeout(function () {
+          axios.get('http://redlines.azurewebsites.net/projects/').then(function (response) {
+            var s = response.data
+            var startIndex = s.search('<pre>') + 5 + 45
+            var endIndex = s.search('</pre>')
+            var slicedString = s.slice(startIndex, endIndex).replace(/<br>/g, '')
+            var htmlObject = document.createElement('div')
+            htmlObject.innerHTML = slicedString
+            var nodesObject = htmlObject.childNodes
+            for (var j = 0; j < nodesObject.length; j += 2) {
+              var projectName = nodesObject[j + 1].text
+              var projectDate = new Date(nodesObject[j].data.trim()).toString()
+              var found = false
+              var hasUpdated = false
+              var childKey
+              var updateIndex
+              for (var i = 0; i < self.projects.length; i++) {
+                if (projectName === self.projects[i].name) {
+                  found = true
+                  childKey = self.projects[i]['.key']
+                  // console.log(childKey)
+                  updateIndex = self.projects[i].updates.length
+                  if (projectDate !== self.projects[i].updates[ 0 ].date) {
+                    hasUpdated = true
+                  }
                 }
               }
+              if (hasUpdated) {
+                console.log(projectName + ' has updated')
+                self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
+                hasUpdated = false
+              }
+              if (!found) {
+                console.log('found ' + projectName)
+                self.projectsRef.push({
+                  name: projectName,
+                  title: projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' '),
+                  designer: '',
+                  thumbnail: '',
+                  updates: [{date: projectDate, note: 'First upload'}]
+                })
+              }
             }
-            if (hasUpdated) {
-              console.log(projectName + ' has updated')
-              projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
-              hasUpdated = false
-            }
-            if (!found) {
-              console.log('found ' + projectName)
-              projectsRef.push({
-                name: projectName,
-                title: projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim(),
-                designer: '',
-                thumbnail: '',
-                updates: [{date: projectDate, note: 'First upload'}]
-              })
-            }
-          }
-        })
-      }, 3000)
-    },
-
-    showData () {
-      for (var i = 0; i < this.projects.length; i++) {
-        console.log(this.projects[i].name)
+          })
+        }, 3000)
       }
     },
 
     getImage (project) {
+      var self = this
       axios.get('http://redlines.azurewebsites.net/projects/' + project.name + '/preview/').then(function (response) {
         var s = response.data
         var startIndex = s.search('<pre>') + 5
@@ -113,7 +93,7 @@ export default {
         htmlObject.innerHTML = slicedString
         var innerNodesObject = htmlObject.querySelectorAll('a')
         var imageName = innerNodesObject[1].text
-        projectsRef.child(project['.key']).child('thumbnail').set(imageName)
+        self.projectsRef.child(project['.key']).child('thumbnail').set(imageName)
       })
     },
     deleteProject (project) {
@@ -122,7 +102,7 @@ export default {
         position: 'bottom-center',
         duration: 5000
       })
-      projectsRef.child(project['.key']).remove()
+      this.projectsRef.child(project['.key']).remove()
     },
     copyLink () {
       this.$toasted.show('Copied link to clipboard', {
@@ -132,18 +112,19 @@ export default {
       })
     },
     updateTitle (project) {
-      projectsRef.child(project['.key']).child('title').set(project.title)
+      this.projectsRef.child(project['.key']).child('title').set(project.title)
     },
     updateDesigner (project, designer) {
-      projectsRef.child(project['.key']).child('designer').set(designer)
+      this.projectsRef.child(project['.key']).child('designer').set(designer)
     },
     updateNote (project, updates) {
-      projectsRef.child(project['.key']).child('updates').set(updates)
+      this.projectsRef.child(project['.key']).child('updates').set(updates)
     }
   },
 
-  created () {
+  mounted () {
     this.addNewProjects()
+    this.$emit('sendRef', this.projects)
   },
 
   computed: {
@@ -160,7 +141,9 @@ export default {
 </script>
 
 <style lang='scss'>
-
+#homeHeader {
+  background:white;
+}
 
 #homeContent {
 	font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -177,16 +160,7 @@ export default {
   -ms-user-select: none; /* IE10+ */
   -o-user-select: none;
   user-select: none;
-}
-
-header {
-  background:white;
-  height: 40px;
-  width: 100%;
-  position: fixed;
-  top:0;
-  z-index: 99;
-  box-shadow: 0 0px 8px 0 rgba(0,0,0,.1);
+  z-index: -100px;
 }
 
 ul {

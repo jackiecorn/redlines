@@ -6,9 +6,6 @@
       <router-link :to="{ path: '/' + project.name }">
         <div id="image" v-bind:style="{backgroundImage: 'url(' + 'http://redlines.azurewebsites.net/projects/' + project.name + '/preview/' + project.thumbnail + '.png' + ')'}"></div>
       </router-link>
-      <!-- <a :href="'http://redlines.azurewebsites.net/projects/' + project.name">
-
-      </a> -->
       <div id="info">
         <input id='title' type="text" placeholder='Enter project title' v-model='project.title' @change='updateTitle' ref='titleInput' @keyup.enter='$refs.titleInput.blur()'>
         <div id="updateDate" @click='openUpdatesModal'>Update: {{ convertedDate }}</div>
@@ -212,6 +209,7 @@ export default {
   cursor: pointer;
   &:hover {
     color: #666;
+    text-decoration: underline;
   }
 }
 

@@ -1,6 +1,6 @@
 <template>
   <div id='home'>
-    <header id='homeHeader'></header>
+    <!-- <header id='homeHeader'></header> -->
     <div id='homeContent'>
     <div id='searchBox'>
       <input type='text' v-model='search' placeholder='Search project or designer name...'>
@@ -10,6 +10,7 @@
       <Block v-for='project in filteredProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote'></Block>
     </transition-group>
     </div>
+    <header id='homeHeader'></header>
   </div>
 </template>
 
@@ -143,6 +144,11 @@ export default {
 <style lang='scss'>
 #homeHeader {
   background:white;
+  z-index: 20;
+  height: 40px;
+  width: 100%;
+  position: fixed;
+  top:0;
 }
 
 #homeContent {

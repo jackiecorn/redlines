@@ -34,53 +34,51 @@ export default {
   methods: {
     addNewProjects () {
       var self = this
-      if (self.projects[0]) {
-        setTimeout(function () {
-          axios.get('http://redlines.azurewebsites.net/projects/').then(function (response) {
-            var s = response.data
-            var startIndex = s.search('<pre>') + 5 + 45
-            var endIndex = s.search('</pre>')
-            var slicedString = s.slice(startIndex, endIndex).replace(/<br>/g, '')
-            var htmlObject = document.createElement('div')
-            htmlObject.innerHTML = slicedString
-            var nodesObject = htmlObject.childNodes
-            for (var j = 0; j < nodesObject.length; j += 2) {
-              var projectName = nodesObject[j + 1].text
-              var projectDate = new Date(nodesObject[j].data.trim()).toString()
-              var found = false
-              var hasUpdated = false
-              var childKey
-              var updateIndex
-              for (var i = 0; i < self.projects.length; i++) {
-                if (projectName === self.projects[i].name) {
-                  found = true
-                  childKey = self.projects[i]['.key']
-                  // console.log(childKey)
-                  updateIndex = self.projects[i].updates.length
-                  if (projectDate !== self.projects[i].updates[ 0 ].date) {
-                    hasUpdated = true
-                  }
+      setTimeout(function () {
+        axios.get('http://redlines.azurewebsites.net/projects/').then(function (response) {
+          var s = response.data
+          var startIndex = s.search('<pre>') + 5 + 45
+          var endIndex = s.search('</pre>')
+          var slicedString = s.slice(startIndex, endIndex).replace(/<br>/g, '')
+          var htmlObject = document.createElement('div')
+          htmlObject.innerHTML = slicedString
+          var nodesObject = htmlObject.childNodes
+          for (var j = 0; j < nodesObject.length; j += 2) {
+            var projectName = nodesObject[j + 1].text
+            var projectDate = new Date(nodesObject[j].data.trim()).toString()
+            var found = false
+            var hasUpdated = false
+            var childKey
+            var updateIndex
+            for (var i = 0; i < self.projects.length; i++) {
+              if (projectName === self.projects[i].name) {
+                found = true
+                childKey = self.projects[i]['.key']
+                // console.log(childKey)
+                updateIndex = self.projects[i].updates.length
+                if (projectDate !== self.projects[i].updates[ 0 ].date) {
+                  hasUpdated = true
                 }
               }
-              if (hasUpdated) {
-                console.log(projectName + ' has updated')
-                self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
-                hasUpdated = false
-              }
-              if (!found) {
-                console.log('found ' + projectName)
-                self.projectsRef.push({
-                  name: projectName,
-                  title: projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' '),
-                  designer: '',
-                  thumbnail: '',
-                  updates: [{date: projectDate, note: 'First upload'}]
-                })
-              }
             }
-          })
-        }, 3000)
-      }
+            if (hasUpdated) {
+              console.log(projectName + ' has updated')
+              self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
+              hasUpdated = false
+            }
+            if (!found) {
+              console.log('found ' + projectName)
+              self.projectsRef.push({
+                name: projectName,
+                title: projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' '),
+                designer: '',
+                thumbnail: '',
+                updates: [{date: projectDate, note: 'First upload'}]
+              })
+            }
+          }
+        })
+      }, 3000)
     },
 
     getImage (project) {

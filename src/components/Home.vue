@@ -1,22 +1,58 @@
 <template>
   <div id='home'>
-    <!-- <header id='homeHeader'></header> -->
     <div id='homeContent'>
     <div id='searchBox'>
       <input type='text' v-model='search' placeholder='Search project or designer name...'>
       <div id='searchIcon'></div>
+    </div>
+    <div id='addButton'  @click='openAddModal'>
+      <div class='icon'></div>
+      <span id='addButtonText'>Add project</span>
     </div>
     <transition-group name="list" tag="div">
       <Block v-for='project in filteredProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote'></Block>
     </transition-group>
     </div>
     <header id='homeHeader'></header>
+    <sweet-modal id='addModal' ref="addModal">
+      <form-wizard color="#666" finish-button-text="Done" @on-complete="closeAddModal">
+        <h2 slot="title">Export redlines from Sketch</h2>
+        <tab-content title="Install plugin">
+          <a href="/Installer.zip" id='downloadButton'><img src="/static/images/SketchPlugin.png" alt="Download installer">
+          <div>Download Redline Tool plugin</div></a>
+        </tab-content>
+        <tab-content title="Export redlines">
+          <div class='instructionText'>
+            In Sketch, select Plugins -> Redline Tool -> Export Redlines
+          </div>
+            <img class='instructionImage' src="/static/images/plugin.png">
+            <div class='instructionText'>
+              Review your formats and artboards then click Export
+            </div>
+            <img class='instructionImage' id='settingsImage' src="/static/images/settings.png">
+            <img class='instructionImage' id='settingsImage' src="/static/images/selectartboards.png">
+            <div class='instructionText'>
+              Enter the project's name and click Export
+            </div>
+            <img class='instructionImage' src="/static/images/filename.png">
+         </tab-content>
+         <tab-content title="Add info">
+           <div class='instructionText'>
+             Once your project is uploaded, add your name and notes about this version
+           </div>
+           <img class='instructionImage' id='settingsImage' src="/static/images/project.png">
+         </tab-content>
+      </form-wizard>
+    </sweet-modal>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
 import Block from './Block'
+import { SweetModal } from 'sweet-modal-vue'
+import {FormWizard, TabContent} from 'vue-form-wizard'
+import 'vue-form-wizard/dist/vue-form-wizard.min.css'
 
 export default {
   name: 'home',
@@ -28,7 +64,10 @@ export default {
   },
 
   components: {
-    'Block': Block
+    'Block': Block,
+    'sweetModal': SweetModal,
+    FormWizard,
+    TabContent
   },
 
   methods: {
@@ -118,6 +157,12 @@ export default {
     },
     updateNote (project, updates) {
       this.projectsRef.child(project['.key']).child('updates').set(updates)
+    },
+    openAddModal () {
+      this.$refs.addModal.open()
+    },
+    closeAddModal () {
+      this.$refs.addModal.close()
     }
   },
 
@@ -247,6 +292,23 @@ li {
   }
 }
 
+#addButton {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  cursor: pointer;
+  transition: opacity .2s;
+  &:hover{
+    opacity: 0.7;
+  }
+}
+
+#addButtonText {
+  position: relative;
+  top:-2px;
+  margin-left: 4px;
+}
+
 #blockList {
   text-align: left;
   margin: 0 auto;
@@ -299,5 +361,87 @@ li {
 .list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
   opacity: 0;
   transform: translateY(30px);
+}
+
+/*.vue-form-wizard .wizard-tab-content{
+  min-height: 800px;
+}*/
+
+#addModal .sweet-modal.is-visible .sweet-buttons, #addModal .sweet-modal.is-visible .sweet-content{
+  padding-bottom: 0px !important;
+}
+
+.vue-form-wizard .navbar .navbar-nav>li>a.wizard-btn.wizard-btn-wd, .vue-form-wizard .wizard-btn-wd{
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-weight: normal !important;
+  background-color: #F4F4F4 !important;
+  border-radius: 0 !important;
+  font-size: 14px !important;
+  padding: 0 16px !important;
+  line-height: 32px !important;
+  min-width: 100px !important;
+  color: #333 !important;
+  border: none !important;
+  outline: none !important;
+  height: 32px !important;
+  margin-left: 8px !important;
+  transition: background-color 0.1s;
+  cursor: pointer;
+    &:hover {
+      background-color: #eaeaea !important;
+    }
+}
+.vue-form-wizard .wizard-card-footer {
+    padding: 0 !important;
+}
+
+.vue-form-wizard .wizard-card-footer .wizard-footer-left {
+  position: absolute;
+  right: 142px;
+}
+
+#downloadButton {
+  transition: opacity .2s;
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.instructionImage {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.instructionText {
+  margin-bottom: 8px;
+}
+
+#settingsImage {
+  width: 265px;
+}
+
+.wizard-header {
+  display: none;
+}
+.stepTitle {
+  color: #c8c8c8;
+  margin-top: 4px;
+}
+.vue-form-wizard .wizard-navigation .wizard-progress-with-circle {
+  top: 36px;
+}
+.vue-form-wizard .wizard-nav-pills a, .vue-form-wizard .wizard-nav-pills li {
+  padding: 0px;
+  margin-bottom: 24px;
+  border-bottom: none;
+}
+.vue-form-wizard .wizard-icon-circle .wizard-icon{
+  font-style: normal;
+  color: #888;
+  font-weight: normal;
+}
+.vue-form-wizard .wizard-icon-circle {
+  width: 60px;
+  height: 60px;
 }
 </style>

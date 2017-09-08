@@ -1,7 +1,10 @@
 <template>
   <div id='tool'>
     <!-- <header></header> -->
-    <div id='title'>{{title}}</div>
+    <div id='titleBox'>
+      <div id='title'>{{title}}</div>
+      <div id='date' v-if='date !=="" '>Updated: {{date}}</div>
+    </div>
     <div id="frameHolder">
       <div id='loader' :class='{ active: isLoaded }'></div>
     <iframe id="toolFrame" :src="'http://redlines.azurewebsites.net/projects/' + this.name" :class='{ active: isLoaded }' @load='loaded'></iframe>
@@ -18,16 +21,8 @@ export default {
     return {
       name: this.$route.params.name,
       title: this.$route.params.name,
+      date: '',
       isLoaded: false
-    }
-  },
-  computed: {
-    projectName () {
-      for (var i = 0; self.projects.length; i++) {
-        if (this.name === self.projects[i].name) {
-          return this.name
-        }
-      }
     }
   },
   methods: {
@@ -43,11 +38,29 @@ export default {
           this.title = this.projects[i].title
         }
       }
+    },
+    showDate () {
+      for (var i = 0; this.projects.length; i++) {
+        if (this.name === this.projects[i].name) {
+          // console.log(this.projects[i].name)
+          var project = this.projects[i]
+          var oldDate = project.updates[project.updates.length - 1].date
+          var currentDt = new Date(oldDate)
+          var mm = currentDt.getMonth() + 1
+          var dd = currentDt.getDate()
+          var yyyy = currentDt.getFullYear()
+          var convertedDate = mm + '/' + dd + '/' + yyyy
+          // console.log(convertedDate)
+          this.date = convertedDate
+        }
+      }
     }
   },
   mounted () {
+    // console.log(this.projects)
     if (this.projects[0]) {
       this.showTitle()
+      this.showDate()
     }
   }
 }
@@ -69,14 +82,18 @@ header {
   box-shadow: 0 0px 8px 0 rgba(0,0,0,.1);
 }
 
-#title {
-  font-weight: lighter;
-  font-size: 18px;
+#titleBox {
   position: absolute;
   top: 7px;
   left: 132px;
   cursor: default;
   z-index: 1000;
+}
+
+#title {
+  font-weight: lighter;
+  font-size: 18px;
+  display: inline;
 }
 
 #title:before {
@@ -86,6 +103,15 @@ header {
   position: relative;
   top: 1px;
   left: -8px;
+}
+
+#date {
+  display: inline;
+  color: #a6a6a6;
+  font-size: 12px;
+  margin-left: 16px;
+  position: relative;
+  top: -1px;
 }
 
 #frameHolder {

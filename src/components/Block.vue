@@ -8,7 +8,8 @@
       </router-link>
       <div id="info">
         <input id='title' type="text" placeholder='Enter project title' v-model='project.title' @change='updateTitle' ref='titleInput' @keyup.enter='$refs.titleInput.blur()'>
-        <div id="updateDate" @click='openUpdatesModal'>Update: {{ convertedDate }}</div>
+        <!-- <div id="updateDate" @click='openUpdatesModal'>Update: {{ convertedDate }}</div> -->
+        <multiselect v-model="product" :options="productOptions" :searchable="false" :close-on-select="true" :show-labels="false" placeholder="Select product" @input='updateProduct'></multiselect>
       </div>
       <designerName :project="project" @updateDesigner='updateDesigner'></designerName>
       <div id="icons">
@@ -39,18 +40,23 @@
 import axios from 'axios'
 import { SweetModal } from 'sweet-modal-vue'
 import DesignerName from './DesignerName'
+import Multiselect from 'vue-multiselect'
 
 export default {
   name: 'block',
   data () {
     return {
-      deleting: false
+      deleting: false,
+      product: '',
+      productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Admin Center']
+      // productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Flow', 'Power BI Desktop', 'Power BI Service', 'Admin Center']
     }
   },
   props: ['project'],
   components: {
     'designerName': DesignerName,
-    'sweetModal': SweetModal
+    'sweetModal': SweetModal,
+    Multiselect
   },
   methods: {
     showData () {
@@ -98,6 +104,9 @@ export default {
     },
     updateNote () {
       this.$emit('updateNote', this.project, this.project.updates)
+    },
+    updateProduct () {
+      this.$emit('updateProduct', this.project, this.product)
     }
   },
   computed: {
@@ -120,6 +129,7 @@ export default {
     if (this.project.thumbnail === '') {
       this.$emit('getImage', this.project)
     }
+    this.product = this.project.product
   }
 }
 </script>
@@ -378,4 +388,69 @@ textarea {
     transform: rotate(360deg);
   }
 }
+</style>
+
+<style lang="scss">
+.multiselect {
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  position: relative;
+  width: 120px;
+  margin-top: 2px;
+  &:active,&:focus {
+    outline: none;
+  }
+}
+
+.multiselect__single {
+  border: none;
+  padding: 0;
+  color: #A6A6A6;
+  font-size: 14px;
+  transition: color 0.2s;
+  cursor: pointer;
+  &:hover {
+    color: #666;
+  }
+  &::-webkit-input-placeholder { /* Chrome */
+    color: #a6a6a6;
+  }
+}
+
+.multiselect__content-wrapper {
+  z-index: 10;
+  position: absolute;
+  background: white;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.15);
+  margin-top: 8px;
+  margin-left: -16px;
+  margin-top: -23px;
+}
+
+.multiselect__element {
+  list-style: none;
+  // margin: 8px 0;
+  color: #666;
+  cursor: pointer;
+}
+
+.multiselect__option{
+  display: block;
+  padding: 4px 16px;
+  min-width: 140px;
+  cursor: pointer;
+  &.multiselect__option--highlight {
+    background: #f4f4f4;
+  }
+  &.multiselect__option--selected {
+    background: #eaeaea;
+    color: #333;
+  }
+}
+
+.multiselect__content {
+  padding:0;
+  margin: 0px 0;
+}
+
 </style>

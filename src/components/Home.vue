@@ -9,8 +9,15 @@
       <div class='icon'></div>
       <span id='addButtonText'>Add project</span>
     </div>
+    <ul id='tabs'>
+      <li class='tab' @click='filter = ""' :class="{ 'active-tab': filter == '' }">All</li>
+      <li class='tab' @click='filter = "PowerApps Studio";' :class="{ 'active-tab': filter == 'PowerApps Studio' }">Studio</li>
+      <li class='tab' @click='filter = "PowerApps Portal";' :class="{ 'active-tab': filter == 'PowerApps Portal' }">Portal</li>
+      <li class='tab' @click='filter = "PowerApps Player";' :class="{ 'active-tab': filter == 'PowerApps Player' }">Player</li>
+      <li class='tab' @click='filter = "Admin Center"' :class="{ 'active-tab': filter == 'Admin Center' }">Admin Center</li>
+    </ul>
     <transition-group name="list" tag="div">
-      <Block v-for='project in filteredProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote'></Block>
+      <Block v-for='project in searchedProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote' @updateProduct='updateProduct'></Block>
     </transition-group>
     </div>
     <header id='homeHeader'></header>
@@ -38,7 +45,7 @@
          </tab-content>
          <tab-content title="Add info">
            <div class='instructionText'>
-             Once your project is uploaded, add your name and notes about this version
+             Once your project is uploaded, enter the product and designer name
            </div>
            <img class='instructionImage' id='settingsImage' src="/static/images/project.png">
          </tab-content>
@@ -59,7 +66,9 @@ export default {
   props: ['projects', 'projectsRef'],
   data () {
     return {
-      search: ''
+      search: '',
+      filter: '',
+      selected: ''
     }
   },
 
@@ -101,18 +110,31 @@ export default {
               }
             }
             if (hasUpdated) {
-              console.log(projectName + ' has updated')
+              // console.log(projectName + ' has been updated')
               self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
               hasUpdated = false
+              // var newTitle2 = projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' ')
+              // self.$toasted.show(newTitle2 + ' has updated', {
+              //   theme: 'primary',
+              //   position: 'bottom-center',
+              //   duration: 5000
+              // })
             }
             if (!found) {
-              console.log('found ' + projectName)
+              // console.log('added ' + projectName)
+              var newTitle = projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' ')
               self.projectsRef.push({
                 name: projectName,
-                title: projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' '),
+                title: newTitle,
                 designer: '',
+                product: '',
                 thumbnail: '',
                 updates: [{date: projectDate, note: 'First upload'}]
+              })
+              self.$toasted.show(newTitle + ' added', {
+                theme: 'primary',
+                position: 'bottom-center',
+                duration: 5000
               })
             }
           }
@@ -158,6 +180,9 @@ export default {
     updateNote (project, updates) {
       this.projectsRef.child(project['.key']).child('updates').set(updates)
     },
+    updateProduct (project, product) {
+      this.projectsRef.child(project['.key']).child('product').set(product)
+    },
     openAddModal () {
       this.$refs.addModal.open()
     },
@@ -172,11 +197,17 @@ export default {
   },
 
   computed: {
-    filteredProjects: function () {
+    filteredProjects () {
       var filteredArray = this.projects.filter((project) => {
+        return project.product.match(this.filter)
+      })
+      return filteredArray
+    },
+    searchedProjects () {
+      var searchedArray = this.filteredProjects.filter((project) => {
         return project.title.toLowerCase().match(this.search.toLowerCase()) || project.designer.toLowerCase().match(this.search.toLowerCase())
       })
-      return filteredArray.sort((b, a) => {
+      return searchedArray.sort((b, a) => {
         return new Date(a.updates[0].date) - new Date(b.updates[0].date)
       })
     }
@@ -192,6 +223,7 @@ export default {
   width: 100%;
   position: fixed;
   top:0;
+  box-shadow: 0 0px 8px 0 rgba(0, 0, 0, 0.05);
 }
 
 #homeContent {
@@ -209,24 +241,42 @@ export default {
   -ms-user-select: none; /* IE10+ */
   -o-user-select: none;
   user-select: none;
-  z-index: -100px;
 }
 
-ul {
-  padding: 0;
-  margin: 0;
+#tabs {
+  padding-left: 20px;
+  margin-top: 16px;
+  margin-bottom: 0;
 }
-li {
-  list-style: none;
-  text-align: left;
-  border-bottom: 1px solid #eaeaea;
-  padding-bottom: 24px;
-  padding-top: 24px;
 
-  &:last-child {
-    border-bottom: none;
-  }
+.tab {
+  display: inline;
+  margin-right: 30px;
+  cursor: pointer;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+  transition: border 0.3s;
 }
+
+.active-tab {
+  color: #333;
+  border-bottom: 2px solid #888;
+}
+// ul {
+//   padding: 0;
+//   margin: 0;
+// }
+// li {
+//   list-style: none;
+//   text-align: left;
+//   border-bottom: 1px solid #eaeaea;
+//   padding-bottom: 24px;
+//   padding-top: 24px;
+//
+//   &:last-child {
+//     border-bottom: none;
+//   }
+// }
 
 .icon {
   font-family: 'FullMDL2';

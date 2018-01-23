@@ -7,7 +7,7 @@
     </div>
     <div id="frameHolder">
       <div id='loader' :class='{ active: isLoaded }'></div>
-    <iframe id="toolFrame" :src="'http://redlines.azurewebsites.net/projects/' + this.name" :class='{ active: isLoaded }' @load='loaded'></iframe>
+    <iframe id="toolFrame" :src="'https://redlines.azurewebsites.net/projects/' + this.name" :class='{ active: isLoaded }' @load='loaded'></iframe>
     <!-- <iframe id="toolFrame" :src="'../../static/projects/Alert-Messages/index.html'" :class='{ active: isLoaded }' @load='loaded'></iframe> -->
     </div>
   </div>

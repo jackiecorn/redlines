@@ -5,6 +5,10 @@
       <input type='text' v-model='search' placeholder='Search project or designer name...'>
       <div id='searchIcon'></div>
     </div>
+    <div id='refreshButton'  @click='addNewProjects'>
+      <div class='icon'></div>
+      <span id='addButtonText'>Refresh</span>
+    </div>
     <div id='addButton'  @click='openAddModal'>
       <div class='icon'></div>
       <span id='addButtonText'>Add project</span>
@@ -15,6 +19,9 @@
       <li class='tab' @click='filter = "PowerApps Portal";' :class="{ 'active-tab': filter == 'PowerApps Portal' }">Portal</li>
       <li class='tab' @click='filter = "PowerApps Player";' :class="{ 'active-tab': filter == 'PowerApps Player' }">Player</li>
       <li class='tab' @click='filter = "Admin Center"' :class="{ 'active-tab': filter == 'Admin Center' }">Admin Center</li>
+      <li class='tab' @click='filter = "Dynamics 365"' :class="{ 'active-tab': filter == 'Dynamics 365' }">Dynamics 365</li>
+      <li class='tab' @click='filter = "Patterns"' :class="{ 'active-tab': filter == 'Patterns' }">Patterns</li>
+      <li class='tab' @click='filter = "CDS"' :class="{ 'active-tab': filter == 'CDS' }">CDS</li>
     </ul>
     <transition-group name="list" tag="div">
       <Block v-for='project in searchedProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote' @updateProduct='updateProduct'></Block>
@@ -82,69 +89,68 @@ export default {
   methods: {
     addNewProjects () {
       var self = this
-      setTimeout(function () {
-        axios.get('http://redlines.azurewebsites.net/projects/').then(function (response) {
-          var s = response.data
-          var startIndex = s.search('<pre>') + 5 + 45
-          var endIndex = s.search('</pre>')
-          var slicedString = s.slice(startIndex, endIndex).replace(/<br>/g, '')
-          var htmlObject = document.createElement('div')
-          htmlObject.innerHTML = slicedString
-          var nodesObject = htmlObject.childNodes
-          for (var j = 0; j < nodesObject.length; j += 2) {
-            var projectName = nodesObject[j + 1].text
-            var projectDate = new Date(nodesObject[j].data.trim()).toString()
-            var found = false
-            var hasUpdated = false
-            var childKey
-            var updateIndex
-            for (var i = 0; i < self.projects.length; i++) {
-              if (projectName === self.projects[i].name) {
-                found = true
-                childKey = self.projects[i]['.key']
-                // console.log(childKey)
-                updateIndex = self.projects[i].updates.length
-                if (projectDate !== self.projects[i].updates[ 0 ].date) {
-                  hasUpdated = true
-                }
+      axios.get('https://redlines.azurewebsites.net/projects/').then(function (response) {
+        var s = response.data
+        var startIndex = s.search('<pre>') + 5 + 45
+        var endIndex = s.search('</pre>')
+        var slicedString = s.slice(startIndex, endIndex).replace(/<br>/g, '')
+        var htmlObject = document.createElement('div')
+        htmlObject.innerHTML = slicedString
+        var nodesObject = htmlObject.childNodes
+        for (var j = 0; j < nodesObject.length; j += 2) {
+          var projectName = nodesObject[j + 1].text
+          var projectDate = new Date(nodesObject[j].data.trim()).toString()
+          var found = false
+          var hasUpdated = false
+          var childKey
+          var updateIndex
+          for (var i = 0; i < self.projects.length; i++) {
+            if (projectName === self.projects[i].name) {
+              found = true
+              childKey = self.projects[i]['.key']
+              // console.log(childKey)
+              updateIndex = self.projects[i].updates.length
+              if (projectDate !== self.projects[i].updates[ 0 ].date) {
+                hasUpdated = true
               }
             }
-            if (hasUpdated) {
-              // console.log(projectName + ' has been updated')
-              self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
-              hasUpdated = false
-              // var newTitle2 = projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' ')
-              // self.$toasted.show(newTitle2 + ' has updated', {
-              //   theme: 'primary',
-              //   position: 'bottom-center',
-              //   duration: 5000
-              // })
-            }
-            if (!found) {
-              // console.log('added ' + projectName)
-              var newTitle = projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' ')
-              self.projectsRef.push({
-                name: projectName,
-                title: newTitle,
-                designer: '',
-                product: '',
-                thumbnail: '',
-                updates: [{date: projectDate, note: 'First upload'}]
-              })
-              self.$toasted.show(newTitle + ' added', {
-                theme: 'primary',
-                position: 'bottom-center',
-                duration: 5000
-              })
-            }
           }
-        })
-      }, 3000)
+          if (hasUpdated) {
+            // console.log(projectName + ' has been updated')
+            // self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
+            self.projectsRef.child(childKey).child('updates').child(updateIndex).set({date: projectDate, note: ''})
+            hasUpdated = false
+            // var newTitle2 = projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' ')
+            // self.$toasted.show(newTitle2 + ' has updated', {
+            //   theme: 'primary',
+            //   position: 'bottom-center',
+            //   duration: 5000
+            // })
+          }
+          if (!found) {
+            // console.log('added ' + projectName)
+            var newTitle = projectName.replace(/_/g, ' ').replace(/([A-Z]+)/g, ' $1').trim().replace('  ', ' ')
+            self.projectsRef.push({
+              name: projectName,
+              title: newTitle,
+              designer: '',
+              product: '',
+              thumbnail: '',
+              updates: [{date: projectDate, note: 'First upload'}]
+            })
+            self.$toasted.show(newTitle + ' added', {
+              theme: 'primary',
+              position: 'bottom-center',
+              duration: 5000
+            })
+          }
+        }
+      })
     },
 
     getImage (project) {
       var self = this
-      axios.get('http://redlines.azurewebsites.net/projects/' + project.name + '/preview/').then(function (response) {
+      axios.get('https://redlines.azurewebsites.net/projects/' + project.name + '/preview/').then(function (response) {
         var s = response.data
         var startIndex = s.search('<pre>') + 5
         var endIndex = s.search('</pre>')
@@ -192,13 +198,14 @@ export default {
   },
 
   mounted () {
-    this.addNewProjects()
+    // this.addNewProjects()
     this.$emit('sendRef', this.projects)
   },
 
   computed: {
     filteredProjects () {
       var filteredArray = this.projects.filter((project) => {
+        // console.log(project)
         return project.product.match(this.filter)
       })
       return filteredArray
@@ -339,6 +346,17 @@ export default {
     -o-user-select: none;
     user-select: none;
     cursor: default;
+  }
+}
+
+#refreshButton {
+  position: absolute;
+  right: 150px;
+  top: 10px;
+  cursor: pointer;
+  transition: opacity .2s;
+  &:hover{
+    opacity: 0.7;
   }
 }
 

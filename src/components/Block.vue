@@ -4,7 +4,7 @@
       <div id='loader'></div>
     </div>
       <router-link :to="{ path: '/' + project.name }">
-        <div id="image" v-bind:style="{backgroundImage: 'url(' + 'http://redlines.azurewebsites.net/projects/' + project.name + '/preview/' + project.thumbnail + '.png' + ')'}"></div>
+        <div id="image" v-bind:style="{backgroundImage: 'url(' + 'https://redlines.azurewebsites.net/projects/' + project.name + '/preview/' + project.thumbnail + '.png' + ')'}"></div>
       </router-link>
       <div id="info">
         <input id='title' type="text" placeholder='Enter project title' v-model='project.title' @change='updateTitle' ref='titleInput' @keyup.enter='$refs.titleInput.blur()'>
@@ -14,7 +14,7 @@
       <designerName :project="project" @updateDesigner='updateDesigner'></designerName>
       <div id="icons">
         <!-- <div class='icon' id='updateButton' v-tooltip.bottom='"Update redlines"'></div> -->
-        <div class='icon' id='linkButton' v-clipboard:copy="'http://redlines.azurewebsites.net/' + project.name" v-clipboard:success="copyLink" v-tooltip.bottom='"Copy link to clipboard"'></div>
+        <div class='icon' id='linkButton' v-clipboard:copy="'https://redlines.azurewebsites.net/' + project.name" v-clipboard:success="copyLink" v-tooltip.bottom='"Copy link to clipboard"'></div>
         <div class='icon' id='deleteButton' @click='openDeleteModal' v-tooltip.bottom='"Delete"'></div>
       </div>
 
@@ -48,7 +48,7 @@ export default {
     return {
       deleting: false,
       product: '',
-      productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Admin Center']
+      productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Admin Center', 'Dynamics 365', 'Patterns', 'CDS']
       // productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Flow', 'Power BI Desktop', 'Power BI Service', 'Admin Center']
     }
   },
@@ -67,7 +67,7 @@ export default {
       var fileName = this.project.name
       this.deleting = true
       self.$refs.deleteModal.close()
-      axios.get('http://redlines.azurewebsites.net/delete.php?file=projects/' + fileName).then(function (response) {
+      axios.get('https://redlines.azurewebsites.net/delete.php?file=projects/' + fileName).then(function (response) {
         self.$emit('deleteProject', self.project)
       })
     },

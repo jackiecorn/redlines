@@ -22,6 +22,7 @@
       <li class='tab' @click='filter = "Dynamics 365"' :class="{ 'active-tab': filter == 'Dynamics 365' }">Dynamics 365</li>
       <li class='tab' @click='filter = "Patterns"' :class="{ 'active-tab': filter == 'Patterns' }">Patterns</li>
       <li class='tab' @click='filter = "CDS"' :class="{ 'active-tab': filter == 'CDS' }">CDS</li>
+      <li class='tab' @click='filter = "Flow"' :class="{ 'active-tab': filter == 'Flow' }">Flow</li>
     </ul>
     <transition-group name="list" tag="div">
       <Block v-for='project in searchedProjects' :key="project['.key']" :project='project' @getImage='getImage' @deleteProject='deleteProject'  @copyLink='copyLink' @updateTitle='updateTitle' @updateDesigner='updateDesigner' @updateNote='updateNote' @updateProduct='updateProduct'></Block>
@@ -52,7 +53,11 @@
          </tab-content>
          <tab-content title="Add info">
            <div class='instructionText'>
-             Once your project is uploaded, enter the product and designer name
+             Once your project is uploaded, click Refresh to see it listed on the page
+           </div>
+           <img class='instructionImage' id='settingsImage' src="/static/images/refresh.png">
+           <div class='instructionText'>
+             Enter more information to make it more searchable
            </div>
            <img class='instructionImage' id='settingsImage' src="/static/images/project.png">
          </tab-content>

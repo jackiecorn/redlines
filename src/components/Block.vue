@@ -48,7 +48,7 @@ export default {
     return {
       deleting: false,
       product: '',
-      productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Admin Center', 'Dynamics 365', 'Patterns', 'CDS']
+      productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Admin Center', 'Dynamics 365', 'Patterns', 'CDS', 'Flow']
       // productOptions: ['PowerApps Studio', 'PowerApps Portal', 'PowerApps Player', 'Flow', 'Power BI Desktop', 'Power BI Service', 'Admin Center']
     }
   },
